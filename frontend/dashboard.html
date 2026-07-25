@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — MFA Vault</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <a class="brand" href="index.html"><span class="dot"></span>MFA VAULT</a>
+
+  <div class="card">
+    <span class="badge"><span class="dot"></span>Session verified</span>
+    <h1 style="margin-top:16px;">Welcome back<span id="userSuffix"></span></h1>
+    <p class="subtitle">This page only rendered because your access token passed both password and TOTP checks.</p>
+
+    <div id="err" class="error"></div>
+
+    <div id="stats"></div>
+
+    <div class="architecture-note">
+      <b>What proved your identity here:</b> a bcrypt-verified password, then a
+      time-based one-time code checked against a secret only your device and
+      this server share (RFC&nbsp;6238). The token this page used to load is
+      scoped separately from the one issued after step 1 — it only exists
+      because <code>mfa_pending</code> flipped to <code>false</code> on the server.
+    </div>
+
+    <button class="secondary" id="logoutBtn" style="margin-top:20px;">Log out</button>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    const err = document.getElementById("err");
+    const token = sessionStorage.getItem("access_token");
+    if (!token) window.location.href = "login.html";
+
+    (async () => {
+      try {
+        const data = await apiGet("/dashboard", token);
+        document.getElementById("userSuffix").textContent = ", " + data.username;
+        document.getElementById("stats").innerHTML = `
+          <div class="stat-row"><span class="k">Username</span><span class="v">${data.username}</span></div>
+          <div class="stat-row"><span class="k">MFA status</span><span class="v">${data.mfa_confirmed ? "active" : "not set up"}</span></div>
+          <div class="stat-row"><span class="k">Backup codes left</span><span class="v">${data.backup_codes_remaining} / 8</span></div>
+          <div class="stat-row"><span class="k">Member since</span><span class="v">${data.member_since}</span></div>
+        `;
+      } catch (e) {
+        showError(err, "Session expired or invalid — please log in again.");
+        setTimeout(() => (window.location.href = "login.html"), 1500);
+      }
+    })();
+
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+      sessionStorage.clear();
+      window.location.href = "index.html";
+    });
+  </script>
+</body>
+</html>

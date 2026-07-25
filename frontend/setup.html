@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Set up authenticator — MFA Vault</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <a class="brand" href="index.html"><span class="dot"></span>MFA VAULT</a>
+
+  <div class="card">
+    <p class="eyebrow">Step 2 of 2</p>
+    <h1>Scan with your authenticator app</h1>
+    <p class="subtitle">Google Authenticator, Authy, or 1Password — any TOTP app works. Then save your backup codes; they're shown once.</p>
+
+    <div class="error" id="err"></div>
+
+    <div class="qr-box"><img id="qrImg" alt="TOTP QR code"></div>
+    <div class="manual-key" id="manualKey"></div>
+
+    <div class="backup-codes">
+      <div class="label">Backup codes — save these somewhere safe. Each one works once, if you lose your phone.</div>
+      <div class="grid" id="codesGrid"></div>
+    </div>
+
+    <label>Enter the 6-digit code from your app to confirm setup</label>
+    <div class="otp-row" id="otpRow">
+      <input class="otp-digit" maxlength="1" inputmode="numeric">
+      <input class="otp-digit" maxlength="1" inputmode="numeric">
+      <input class="otp-digit" maxlength="1" inputmode="numeric">
+      <input class="otp-digit" maxlength="1" inputmode="numeric">
+      <input class="otp-digit" maxlength="1" inputmode="numeric">
+      <input class="otp-digit" maxlength="1" inputmode="numeric">
+    </div>
+    <div class="countdown-wrap">
+      <svg class="countdown-ring" viewBox="0 0 16 16">
+        <circle class="track" cx="8" cy="8" r="6.5"></circle>
+        <circle class="progress" cx="8" cy="8" r="6.5"></circle>
+      </svg>
+      <span id="countdownLabel">30s</span> until code refreshes
+    </div>
+
+    <button class="primary" id="confirmBtn" disabled>Confirm & activate MFA</button>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    const err = document.getElementById("err");
+    const payloadRaw = sessionStorage.getItem("setup_payload");
+    if (!payloadRaw) window.location.href = "register.html";
+    const payload = JSON.parse(payloadRaw);
+
+    document.getElementById("qrImg").src = "data:image/png;base64," + payload.qr_code_base64;
+    document.getElementById("manualKey").textContent = payload.manual_key;
+
+    const grid = document.getElementById("codesGrid");
+    payload.backup_codes.forEach((code) => {
+      const span = document.createElement("span");
+      span.textContent = code;
+      grid.appendChild(span);
+    });
+
+    startTotpCountdown(
+      document.querySelector(".countdown-ring .progress"),
+      document.getElementById("countdownLabel")
+    );
+
+    const confirmBtn = document.getElementById("confirmBtn");
+    let currentCode = "";
+
+    wireOtpInputs(document.getElementById("otpRow"), (code) => {
+      currentCode = code;
+      confirmBtn.disabled = false;
+    });
+
+    confirmBtn.addEventListener("click", async () => {
+      hideError(err);
+      try {
+        await apiPost("/mfa/confirm", { username: payload.username, code: currentCode });
+        sessionStorage.removeItem("setup_payload");
+        window.location.href = "login.html";
+      } catch (e) {
+        showError(err, e.message);
+      }
+    });
+  </script>
+</body>
+</html>

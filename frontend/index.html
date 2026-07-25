@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MFA Vault</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <a class="brand" href="index.html"><span class="dot"></span>MFA VAULT</a>
+
+  <div class="card wide">
+    <p class="eyebrow">Zero-trust auth demo</p>
+    <h1>Password + authenticator app, the way real systems do it</h1>
+    <p class="subtitle">
+      A minimal, from-scratch implementation of two-factor login: bcrypt password hashing,
+      RFC 6238 time-based one-time codes (the same standard behind Google Authenticator),
+      single-use backup codes, and short-lived JWT sessions. No auth-as-a-service, no
+      third-party SDK — every step is code you can walk through.
+    </p>
+
+    <div class="stat-row"><span class="k">Factor 1</span><span class="v">password (bcrypt hash)</span></div>
+    <div class="stat-row"><span class="k">Factor 2</span><span class="v">TOTP (RFC 6238)</span></div>
+    <div class="stat-row"><span class="k">Recovery</span><span class="v">8 single-use backup codes</span></div>
+    <div class="stat-row"><span class="k">Session</span><span class="v">JWT, 30 min expiry</span></div>
+    <div class="stat-row"><span class="k">Brute force</span><span class="v">lockout after 5 failed attempts</span></div>
+
+    <div style="margin-top:26px; display:flex; gap:12px;">
+      <a href="register.html" style="flex:1; text-decoration:none;"><button class="primary">Create account</button></a>
+      <a href="login.html" style="flex:1; text-decoration:none;"><button class="secondary">Log in</button></a>
+    </div>
+  </div>
+</body>
+</html>
