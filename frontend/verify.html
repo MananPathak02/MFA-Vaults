@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Verify — MFA Vault</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <a class="brand" href="index.html"><span class="dot"></span>MFA VAULT</a>
+
+  <div class="card">
+    <p class="eyebrow">Step 2 of 2</p>
+    <h1>Enter your 6-digit code</h1>
+    <p class="subtitle">From your authenticator app. Lost your phone? Use a backup code instead.</p>
+
+    <div class="error" id="err"></div>
+
+    <div class="otp-row" id="otpRow">
+      <input class="otp-digit" maxlength="1" inputmode="numeric">
+      <input class="otp-digit" maxlength="1" inputmode="numeric">
+      <input class="otp-digit" maxlength="1" inputmode="numeric">
+      <input class="otp-digit" maxlength="1" inputmode="numeric">
+      <input class="otp-digit" maxlength="1" inputmode="numeric">
+      <input class="otp-digit" maxlength="1" inputmode="numeric">
+    </div>
+    <div class="countdown-wrap">
+      <svg class="countdown-ring" viewBox="0 0 16 16">
+        <circle class="track" cx="8" cy="8" r="6.5"></circle>
+        <circle class="progress" cx="8" cy="8" r="6.5"></circle>
+      </svg>
+      <span id="countdownLabel">30s</span> until code refreshes
+    </div>
+
+    <p class="backup-toggle" id="backupToggle">Use a backup code instead</p>
+
+    <button class="primary" id="verifyBtn" disabled>Verify & continue</button>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    const err = document.getElementById("err");
+    const pendingToken = sessionStorage.getItem("pending_token");
+    if (!pendingToken) window.location.href = "login.html";
+
+    startTotpCountdown(
+      document.querySelector(".countdown-ring .progress"),
+      document.getElementById("countdownLabel")
+    );
+
+    const verifyBtn = document.getElementById("verifyBtn");
+    let currentCode = "";
+
+    wireOtpInputs(document.getElementById("otpRow"), (code) => {
+      currentCode = code;
+      verifyBtn.disabled = false;
+    });
+
+    document.getElementById("backupToggle").addEventListener("click", () => {
+      const code = prompt("Enter one of your 8-character backup codes:");
+      if (code) {
+        currentCode = code.trim();
+        submit();
+      }
+    });
+
+    verifyBtn.addEventListener("click", submit);
+
+    async function submit() {
+      hideError(err);
+      try {
+        const data = await apiPost("/mfa/verify", { pending_token: pendingToken, code: currentCode });
+        sessionStorage.removeItem("pending_token");
+        sessionStorage.setItem("access_token", data.access_token);
+        window.location.href = "dashboard.html";
+      } catch (e) {
+        showError(err, e.message);
+      }
+    }
+  </script>
+</body>
+</html>

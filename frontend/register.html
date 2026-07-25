@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Create account — MFA Vault</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <a class="brand" href="index.html"><span class="dot"></span>MFA VAULT</a>
+
+  <div class="card">
+    <p class="eyebrow">Step 1 of 2</p>
+    <h1>Create your account</h1>
+    <p class="subtitle">Password is hashed with bcrypt before it ever touches the database. You'll set up your authenticator app next.</p>
+
+    <div class="error" id="err"></div>
+
+    <form id="form">
+      <label for="username">Username</label>
+      <input type="text" id="username" autocomplete="username" required minlength="3" maxlength="32">
+
+      <label for="password">Password</label>
+      <input type="password" id="password" autocomplete="new-password" required minlength="8">
+
+      <button type="submit" class="primary">Continue to MFA setup</button>
+    </form>
+
+    <p class="footer-link">Already have an account? <a href="login.html">Log in</a></p>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    const form = document.getElementById("form");
+    const err = document.getElementById("err");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      hideError(err);
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value;
+
+      try {
+        const data = await apiPost("/register", { username, password });
+        sessionStorage.setItem("setup_payload", JSON.stringify(data));
+        window.location.href = "setup.html";
+      } catch (e) {
+        showError(err, e.message);
+      }
+    });
+  </script>
+</body>
+</html>

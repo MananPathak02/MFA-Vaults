@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Log in — MFA Vault</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <a class="brand" href="index.html"><span class="dot"></span>MFA VAULT</a>
+
+  <div class="card">
+    <p class="eyebrow">Step 1 of 2</p>
+    <h1>Log in</h1>
+    <p class="subtitle">Password first. If it's correct, you'll be asked for your authenticator code next.</p>
+
+    <div class="error" id="err"></div>
+
+    <form id="form">
+      <label for="username">Username</label>
+      <input type="text" id="username" autocomplete="username" required>
+
+      <label for="password">Password</label>
+      <input type="password" id="password" autocomplete="current-password" required>
+
+      <button type="submit" class="primary">Continue</button>
+    </form>
+
+    <p class="footer-link">No account yet? <a href="register.html">Create one</a></p>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    const form = document.getElementById("form");
+    const err = document.getElementById("err");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      hideError(err);
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value;
+
+      try {
+        const data = await apiPost("/login", { username, password });
+        sessionStorage.setItem("pending_token", data.pending_token);
+        window.location.href = "verify.html";
+      } catch (e) {
+        showError(err, e.message);
+      }
+    });
+  </script>
+</body>
+</html>
