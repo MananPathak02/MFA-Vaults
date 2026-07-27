@@ -5,7 +5,7 @@
 // Local dev: backend serves this frontend too, so a relative path works.
 // Split deploy (this file on Vercel, backend elsewhere): replace with
 // your backend's full URL, e.g. "https://mfa-vault-backend.up.railway.app/api"
-const API = "/api";
+const API = "https://mfa-vaults.onrender.com/api";
 
 async function apiPost(path, body) {
   const res = await fetch(API + path, {
